@@ -12,3 +12,4 @@ namespace tododacma.common.Responses
 
         public object Result { get; set; }
     }
+}
