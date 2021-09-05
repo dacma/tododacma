@@ -65,7 +65,50 @@ namespace tododacma.Functions.Functions
             });
         }
 
+        [FunctionName(nameof(CreateConsolidate))]
+        public static async Task<IActionResult> CreateConsolidate(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "consolidated")] HttpRequest req,
+            [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable todoTable,
+            ILogger log)
+        {
+            log.LogInformation("Recieved a new consolidated.");
 
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            Consolidated consolidated = JsonConvert.DeserializeObject<Consolidated>(requestBody);
+
+            if (string.IsNullOrEmpty(consolidated?.TaskDescription))
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "The request must have a TaskDescription."
+                });
+            }
+
+            TodoConsolidated todoConsolidated = new TodoConsolidated
+            {
+                CurrentDate = DateTime.UtcNow,
+                Id = 123,
+
+                Minutes = 24,
+                PartitionKey = "CONSOLIDATED",
+                RowKey = Guid.NewGuid().ToString(),
+                TaskDescription = consolidated.TaskDescription
+            };
+
+            TableOperation addOperation = TableOperation.Insert(todoConsolidated);
+            await todoTable.ExecuteAsync(addOperation);
+
+            string message = "New todo stored in table";
+            log.LogInformation(message);
+
+            return new OkObjectResult(new Response
+            {
+                IsSuccess = true,
+                Message = message,
+                Result = todoConsolidated
+            });
+        }
 
 
         [FunctionName(nameof(UpdateTodo))]
