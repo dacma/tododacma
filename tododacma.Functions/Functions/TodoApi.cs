@@ -111,6 +111,29 @@ namespace tododacma.Functions.Functions
         }
 
 
+        [FunctionName(nameof(GetConsolidated))]
+        public static async Task<IActionResult> GetConsolidated(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "consolidated")] HttpRequest req,
+            [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable todoTable,
+            ILogger log)
+        {
+            log.LogInformation("Get all todos received.");
+
+            TableQuery<TodoConsolidated> query = new TableQuery<TodoConsolidated>();
+            TableQuerySegment<TodoConsolidated> consolidated = await todoTable.ExecuteQuerySegmentedAsync(query, null);
+
+            string message = "Retrieved all todos.";
+            log.LogInformation(message);
+
+            return new OkObjectResult(new Response
+            {
+                IsSuccess = true,
+                Message = message,
+                Result = consolidated
+            });
+        }
+
+
         [FunctionName(nameof(UpdateTodo))]
         public static async Task<IActionResult> UpdateTodo(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "todo/{id}")] HttpRequest req,
