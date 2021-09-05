@@ -12,7 +12,11 @@ using tododacma.common.Models;
 using tododacma.common.Responses;
 using tododacma.Functions.Entities;
 
+
 namespace tododacma.Functions.Functions
+
+
+
 {
     public static class TodoApi
     {
@@ -23,8 +27,6 @@ namespace tododacma.Functions.Functions
             ILogger log)
         {
             log.LogInformation("Recieved a new todo.");
-
-            string name = req.Query["name"];
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             Todo todo = JsonConvert.DeserializeObject<Todo>(requestBody);
@@ -40,14 +42,14 @@ namespace tododacma.Functions.Functions
 
             TodoEntity todoEntity = new TodoEntity
             {
-                CreatedTime = DateTime.UtcNow,
-                ETag = "*",
-                IsCompleted = false,
+                CurrentDate = DateTime.UtcNow,
+                Id = 123,
+                Type = 0,
+                Consolidated = false,
                 PartitionKey = "TODO",
                 RowKey = Guid.NewGuid().ToString(),
                 TaskDescription = todo.TaskDescription
             };
-
 
             TableOperation addOperation = TableOperation.Insert(todoEntity);
             await todoTable.ExecuteAsync(addOperation);
@@ -62,6 +64,8 @@ namespace tododacma.Functions.Functions
                 Result = todoEntity
             });
         }
+
+
 
 
         [FunctionName(nameof(UpdateTodo))]
@@ -90,7 +94,7 @@ namespace tododacma.Functions.Functions
 
             // Update todo
             TodoEntity todoEntity = (TodoEntity)findResult.Result;
-            todoEntity.IsCompleted = todo.IsCompleted;
+            todoEntity.Consolidated = todo.Consolidated;
             if (!string.IsNullOrEmpty(todo.TaskDescription))
             {
                 todoEntity.TaskDescription = todo.TaskDescription;
@@ -163,9 +167,11 @@ namespace tododacma.Functions.Functions
 
         [FunctionName(nameof(DeleteTodo))]
         public static async Task<IActionResult> DeleteTodo(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "todo/{id}")] HttpRequest req, 
-            [Table("todo", "TODO", "{id}", Connection = "AzureWebJobsStorage")] TodoEntity todoEntity, 
-            [Table("todo", Connection = "AzureWebJobsStorage")] CloudTable todoTable, string id, ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "todo/{id}")] HttpRequest req,
+            [Table("todo", "TODO", "{id}", Connection = "AzureWebJobsStorage")] TodoEntity todoEntity,
+            [Table("todo", Connection = "AzureWebJobsStorage")] CloudTable todoTable,
+            string id,
+            ILogger log)
         {
             log.LogInformation($"Delete todo: {id}, received.");
 
@@ -189,5 +195,6 @@ namespace tododacma.Functions.Functions
                 Result = todoEntity
             });
         }
+    
     }
 }

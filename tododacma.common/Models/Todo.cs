@@ -4,10 +4,12 @@ namespace tododacma.common.Models
 {
     public class Todo
     {
-        public DateTime CreatedTime { get; set; }
-
         public string TaskDescription { get; set; }
+        public int Id { get; set;  }
+        public DateTime CurrentDate { get; set; }
 
-        public bool IsCompleted { get; set; }
+        public int Type { get; set; }
+
+        public bool Consolidated { get; set; }
     }
 }
