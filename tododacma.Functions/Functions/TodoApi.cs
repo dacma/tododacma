@@ -33,9 +33,19 @@ namespace tododacma.Functions.Functions
 
 
 
+
+            
+            if (employee.EmployeeId == null)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "invalid employee ID."
+                });
+            }
             
 
-            if (employee.employeeId == null)
+            if (employee.EmployeeId <= 0)
             {
                 return new BadRequestObjectResult(new Response
                 {
@@ -43,15 +53,7 @@ namespace tododacma.Functions.Functions
                     Message = "invalid employee ID."
                 });
             }
-
-            if (employee.employeeId <= 0)
-            {
-                return new BadRequestObjectResult(new Response
-                {
-                    IsSuccess = false,
-                    Message = "invalid employee ID."
-                });
-            }
+            
 
             if (employee.CurrentDate == null)
             {
@@ -62,6 +64,7 @@ namespace tododacma.Functions.Functions
                 });
             }
 
+        
             if (employee.Type == null)
             {
                 return new BadRequestObjectResult(new Response
@@ -70,6 +73,7 @@ namespace tododacma.Functions.Functions
                     Message = "The request must be have a valid register type."
                 });
             }
+       
 
             if (employee.Type < 0 || employee.Type > 1)
             {
@@ -80,6 +84,7 @@ namespace tododacma.Functions.Functions
                 });
             }
 
+          
             if (employee.Consolidated == null)
             {
                 return new BadRequestObjectResult(new Response
@@ -88,11 +93,12 @@ namespace tododacma.Functions.Functions
                     Message = "The request must be have a valid register type."
                 });
             }
+         
 
             TodoEntity todoEntity = new TodoEntity
             {
                 CurrentDate = DateTime.UtcNow,
-                employeeId = employee.employeeId,
+                employeeId = employee.EmployeeId,
                 Consolidated = false,
                 PartitionKey = "TODO",
                 ETag = "*",
@@ -100,7 +106,6 @@ namespace tododacma.Functions.Functions
                 Type = employee.Type,
             };
 
-            //------------------------------------------------------------------------------
             TableOperation addOperation = TableOperation.Insert(todoEntity);
             await todoTable.ExecuteAsync(addOperation);
 
@@ -114,6 +119,10 @@ namespace tododacma.Functions.Functions
                 Result = todoEntity
             });
         }
+
+        
+
+
 
         
         [FunctionName(nameof(UpdateTodo))]
@@ -163,6 +172,7 @@ namespace tododacma.Functions.Functions
             });
         }
 
+        /*
         [FunctionName(nameof(GetAllTodos))]
         public static async Task<IActionResult> GetAllTodos(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "todo")] HttpRequest req,
@@ -203,7 +213,7 @@ namespace tododacma.Functions.Functions
                 });
             }
 
-            string message = $"Todo: {todoEntity.RowKey}, retrieved.";
+            string message = $"Todo: {id}, retrieved.";
             log.LogInformation(message);
 
             return new OkObjectResult(new Response
@@ -244,6 +254,7 @@ namespace tododacma.Functions.Functions
                 Result = todoEntity
             });
         }
+        */
 
     }
 }

@@ -15,6 +15,8 @@ namespace tododacma.Functions.Functions
 {
     public static class ConsolidatedRegister
     {
+
+        /*
         [FunctionName(nameof(GetConsolidated))]
         public static async Task<IActionResult> GetConsolidated(
            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "consolidated")] HttpRequest req,
@@ -37,25 +39,25 @@ namespace tododacma.Functions.Functions
             });
         }
 
-        [FunctionName(nameof(GetTodoById))]
-        public static IActionResult GetTodoById(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "todo/{id}")] HttpRequest req,
-            [Table("todo", "TODO", "{id}", Connection = "AzureWebJobsStorage")] TodoEntity todoEntity,
-            string id,
+        [FunctionName(nameof(GetTodoByIdConsolidated))]
+        public static IActionResult GetTodoByIdConsolidated(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "consolidated/{date}")] HttpRequest req,
+            [Table("consolidated", "{date}", Connection = "AzureWebJobsStorage")] TodoEntity todoEntity,
+            string date,
             ILogger log)
         {
-            log.LogInformation($"Get todo by id: {id}, received.");
+            log.LogInformation($"Get todo by date: {date}, received.");
 
             if (todoEntity == null)
             {
                 return new BadRequestObjectResult(new Response
                 {
                     IsSuccess = false,
-                    Message = "Todo not found."
+                    Message = "Employee not found."
                 });
             }
 
-            string message = $"Todo: {todoEntity.RowKey}, retrieved.";
+            string message = $"Todo: {date}, retrieved.";
             log.LogInformation(message);
 
             return new OkObjectResult(new Response
@@ -66,7 +68,7 @@ namespace tododacma.Functions.Functions
             });
         }
 
-
+        */
 
     }
 }
