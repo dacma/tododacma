@@ -82,7 +82,6 @@ namespace tododacma.Functions.Functions
             }
 
 
-
             TodoConsolidated todoConsolidated = new TodoConsolidated
             {
                 Id = 123,
@@ -93,17 +92,18 @@ namespace tododacma.Functions.Functions
                 RowKey = Guid.NewGuid().ToString(),
             };
 
+
+
             TableOperation addOperation = TableOperation.Insert(todoConsolidated);
             await consolidatedTable.ExecuteAsync(addOperation);
 
-            string message = "New todo stored in table";
+            string message = "Consolidated ok";
             log.LogInformation(message);
 
             return new OkObjectResult(new Response
             {
                 IsSuccess = true,
                 Message = message,
-                Result = todoConsolidated
             });
         }
 
