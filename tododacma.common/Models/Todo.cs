@@ -4,8 +4,7 @@ namespace tododacma.common.Models
 {
     public class Todo
     {
-        public string TaskDescription { get; set; }
-        public int Id { get; set;  }
+        public int employeeId { get; set; }
         public DateTime CurrentDate { get; set; }
 
         public int Type { get; set; }

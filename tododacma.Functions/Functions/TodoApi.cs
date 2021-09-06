@@ -26,31 +26,81 @@ namespace tododacma.Functions.Functions
             [Table("todo", Connection = "AzureWebJobsStorage")] CloudTable todoTable,
             ILogger log)
         {
-            log.LogInformation("Recieved a new todo.");
+            log.LogInformation("Registration created successfully.");
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            Todo todo = JsonConvert.DeserializeObject<Todo>(requestBody);
+            Todo employee = JsonConvert.DeserializeObject<Todo>(requestBody);
 
-            if (string.IsNullOrEmpty(todo?.TaskDescription))
+
+
+            
+
+            if (employee.employeeId == null)
             {
                 return new BadRequestObjectResult(new Response
                 {
                     IsSuccess = false,
-                    Message = "The request must have a TaskDescription."
+                    Message = "invalid employee ID."
+                });
+            }
+
+            if (employee.employeeId <= 0)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "invalid employee ID."
+                });
+            }
+
+            if (employee.CurrentDate == null)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "The request must be have a valid Date."
+                });
+            }
+
+            if (employee.Type == null)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "The request must be have a valid register type."
+                });
+            }
+
+            if (employee.Type < 0 || employee.Type > 1)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "The request must be have a valid register type."
+                });
+            }
+
+            if (employee.Consolidated == null)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "The request must be have a valid register type."
                 });
             }
 
             TodoEntity todoEntity = new TodoEntity
             {
                 CurrentDate = DateTime.UtcNow,
-                Id = 123,
-                Type = 0,
+                employeeId = employee.employeeId,
                 Consolidated = false,
                 PartitionKey = "TODO",
+                ETag = "*",
                 RowKey = Guid.NewGuid().ToString(),
-                TaskDescription = todo.TaskDescription
+                Type = employee.Type,
             };
 
+            //------------------------------------------------------------------------------
             TableOperation addOperation = TableOperation.Insert(todoEntity);
             await todoTable.ExecuteAsync(addOperation);
 
@@ -65,75 +115,7 @@ namespace tododacma.Functions.Functions
             });
         }
 
-        [FunctionName(nameof(CreateConsolidate))]
-        public static async Task<IActionResult> CreateConsolidate(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "consolidated")] HttpRequest req,
-            [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable todoTable,
-            ILogger log)
-        {
-            log.LogInformation("Recieved a new consolidated.");
-
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            Consolidated consolidated = JsonConvert.DeserializeObject<Consolidated>(requestBody);
-
-            if (string.IsNullOrEmpty(consolidated?.TaskDescription))
-            {
-                return new BadRequestObjectResult(new Response
-                {
-                    IsSuccess = false,
-                    Message = "The request must have a TaskDescription."
-                });
-            }
-
-            TodoConsolidated todoConsolidated = new TodoConsolidated
-            {
-                CurrentDate = DateTime.UtcNow,
-                Id = 123,
-
-                Minutes = 24,
-                PartitionKey = "CONSOLIDATED",
-                RowKey = Guid.NewGuid().ToString(),
-                TaskDescription = consolidated.TaskDescription
-            };
-
-            TableOperation addOperation = TableOperation.Insert(todoConsolidated);
-            await todoTable.ExecuteAsync(addOperation);
-
-            string message = "New todo stored in table";
-            log.LogInformation(message);
-
-            return new OkObjectResult(new Response
-            {
-                IsSuccess = true,
-                Message = message,
-                Result = todoConsolidated
-            });
-        }
-
-
-        [FunctionName(nameof(GetConsolidated))]
-        public static async Task<IActionResult> GetConsolidated(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "consolidated")] HttpRequest req,
-            [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable todoTable,
-            ILogger log)
-        {
-            log.LogInformation("Get all todos received.");
-
-            TableQuery<TodoConsolidated> query = new TableQuery<TodoConsolidated>();
-            TableQuerySegment<TodoConsolidated> consolidated = await todoTable.ExecuteQuerySegmentedAsync(query, null);
-
-            string message = "Retrieved all todos.";
-            log.LogInformation(message);
-
-            return new OkObjectResult(new Response
-            {
-                IsSuccess = true,
-                Message = message,
-                Result = consolidated
-            });
-        }
-
-
+        
         [FunctionName(nameof(UpdateTodo))]
         public static async Task<IActionResult> UpdateTodo(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "todo/{id}")] HttpRequest req,
@@ -144,9 +126,9 @@ namespace tododacma.Functions.Functions
             log.LogInformation($"Update for todo: {id}, received.");
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            Todo todo = JsonConvert.DeserializeObject<Todo>(requestBody);
+            Todo employee = JsonConvert.DeserializeObject<Todo>(requestBody);
 
-            // Validate todo id
+
             TableOperation findOperation = TableOperation.Retrieve<TodoEntity>("TODO", id);
             TableResult findResult = await todoTable.ExecuteAsync(findOperation);
             if (findResult.Result == null)
@@ -158,12 +140,13 @@ namespace tododacma.Functions.Functions
                 });
             }
 
-            // Update todo
+
             TodoEntity todoEntity = (TodoEntity)findResult.Result;
-            todoEntity.Consolidated = todo.Consolidated;
-            if (!string.IsNullOrEmpty(todo.TaskDescription))
+            todoEntity.Consolidated = employee.Consolidated;
+            if (employee.Type < 0 || employee.Type > 1)
             {
-                todoEntity.TaskDescription = todo.TaskDescription;
+                todoEntity.employeeId = todoEntity.employeeId;
+                todoEntity.Type = todoEntity.Type;
             }
 
             TableOperation addOperation = TableOperation.Replace(todoEntity);
@@ -251,7 +234,7 @@ namespace tododacma.Functions.Functions
             }
 
             await todoTable.ExecuteAsync(TableOperation.Delete(todoEntity));
-            string message = $"Todo: {todoEntity.RowKey}, deleted.";
+            string message = $"Todo: {id}, deleted.";
             log.LogInformation(message);
 
             return new OkObjectResult(new Response
@@ -261,6 +244,6 @@ namespace tododacma.Functions.Functions
                 Result = todoEntity
             });
         }
-    
+
     }
 }
