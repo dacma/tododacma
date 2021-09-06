@@ -172,7 +172,7 @@ namespace tododacma.Functions.Functions
             });
         }
 
-        /*
+        
         [FunctionName(nameof(GetAllTodos))]
         public static async Task<IActionResult> GetAllTodos(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "todo")] HttpRequest req,
@@ -195,6 +195,7 @@ namespace tododacma.Functions.Functions
             });
         }
 
+        /*
         [FunctionName(nameof(GetTodoById))]
         public static IActionResult GetTodoById(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "todo/{id}")] HttpRequest req,
