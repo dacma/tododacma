@@ -67,7 +67,7 @@ namespace tododacma.Functions.Functions
                 return new BadRequestObjectResult(new Response
                 {
                     IsSuccess = false,
-                    Message = "invalid employee ID."
+                    Message = "invalid employee Minutes."
                 });
             }
 
@@ -159,6 +159,55 @@ namespace tododacma.Functions.Functions
                 Result = consolidatedEntity
             });
         }
+
+
+
+        [FunctionName(nameof(UpdateConsolidated))]
+        public static async Task<IActionResult> UpdateConsolidated(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "consolidated/{id}")] HttpRequest req,
+            [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable todoTable,
+            string id,
+            ILogger log)
+        {
+            log.LogInformation($"Update for todo: {id}, received.");
+
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            Consolidated todo = JsonConvert.DeserializeObject<Consolidated>(requestBody);
+
+            // Validate todo id
+            TableOperation findOperation = TableOperation.Retrieve<TodoConsolidated>("TODO", id);
+            TableResult findResult = await todoTable.ExecuteAsync(findOperation);
+            if (findResult.Result == null)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "Todo not found."
+                });
+            }
+
+            // Update todo
+            TodoConsolidated todoConsolidated = (TodoConsolidated)findResult.Result;
+            todoConsolidated.Id = todo.Id;
+            if (todoConsolidated.Id > 1)
+            {
+                todoConsolidated.Id= todo.Id;
+            }
+
+            TableOperation addOperation = TableOperation.Replace(todoConsolidated);
+            await todoTable.ExecuteAsync(addOperation);
+
+            string message = $"Todo: {id}, updated in table.";
+            log.LogInformation(message);
+
+            return new OkObjectResult(new Response
+            {
+                IsSuccess = true,
+                Message = message,
+                Result = todoConsolidated
+            });
+        }
+
 
 
 

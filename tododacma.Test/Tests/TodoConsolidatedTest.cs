@@ -4,49 +4,49 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using tododacma.common.Models;
-using tododacma.Functions.Entities;
 using tododacma.Functions.Functions;
 using tododacma.Test.Helpers;
 using Xunit;
 
 namespace tododacma.Test.Tests
 {
-    public class TodoApiTest
+    public class TodoConsolidatedTest
     {
-        private readonly ILogger logger = TestFactory.CreateLogger();
+        private readonly ILogger logger = TestsFactoryConsolidated.CreateLogger();
 
         [Fact]
-        public async void CreateTodo_Should_Return_200()
+        public async void CreateConsolidated_Should_Return_200()
         {
             // Arrenge
             MockCloudTableTodos mockTodos = new MockCloudTableTodos(new Uri("http://127.0.0.1:10002/devstoreaccount1/reports"));
-            Todo todoRequest = TestFactory.GetTodoRequest();
-            DefaultHttpRequest request = TestFactory.CreateHttpRequest(todoRequest);
+            Consolidated todoRequest = TestsFactoryConsolidated.GetConsolidatedRequest();
+            DefaultHttpRequest request = TestsFactoryConsolidated.CreateHttpRequest(todoRequest);
 
             // Act
-            IActionResult response = await TodoApi.CreateTodo(request, mockTodos, logger);
+            IActionResult response = await ConsolidatedRegister.CreateConsolidated(request, mockTodos, logger);
 
             // Assert
             OkObjectResult result = (OkObjectResult)response;
             Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
         }
 
-        [Fact]
-        public async void UpdateTodo_Should_Return_200()
-        {
-            // Arrenge
-            MockCloudTableTodos mockTodos = new MockCloudTableTodos(new Uri("http://127.0.0.1:10002/devstoreaccount1/reports"));
-            Todo todoRequest = TestFactory.GetTodoRequest();
-            Guid todoId = Guid.NewGuid();
-            DefaultHttpRequest request = TestFactory.CreateHttpRequest(todoId, todoRequest);
+        /*
+         [Fact]
+         public async void UpdateConsolidated_Should_Return_200()
+         {
+             // Arrenge
+             MockCloudTableTodos mockTodos = new MockCloudTableTodos(new Uri("http://127.0.0.1:10002/devstoreaccount1/reports"));
+             Consolidated todoRequest = TestsFactoryConsolidated.GetConsolidatedRequest();
+             Guid todoId = Guid.NewGuid();
+             DefaultHttpRequest request = TestsFactoryConsolidated.CreateHttpRequest(todoId, todoRequest);
 
-            // Act
-            IActionResult response = await TodoApi.UpdateTodo(request, mockTodos, todoId.ToString(), logger);
+             // Act
+             IActionResult response = await ConsolidatedRegister.UpdateConsolidated(request, mockTodos, todoId.ToString(), logger);
 
-            // Assert
-            OkObjectResult result = (OkObjectResult)response;
-            Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
-        }
+             // Assert
+             OkObjectResult result = (OkObjectResult)response;
+             Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
+         }
 
 
         [Fact]
@@ -56,7 +56,7 @@ namespace tododacma.Test.Tests
             //MockCloudTableTodos mockTodos = new MockCloudTableTodos(new Uri("http://127.0.0.1:10002/devstoreaccount1/reports"));
             TodoEntity todoEntity = TestFactory.GetTodoEntity();
             Todo todoRequest = TestFactory.GetTodoRequest();
- 
+
             Guid todoId = Guid.NewGuid();
             DefaultHttpRequest request = TestFactory.CreateHttpRequest(todoId, todoRequest);
 
@@ -68,9 +68,7 @@ namespace tododacma.Test.Tests
             Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
         }
 
-
-
+        */
 
     }
 }
-

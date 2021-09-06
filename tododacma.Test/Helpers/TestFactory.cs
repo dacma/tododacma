@@ -27,7 +27,8 @@ namespace tododacma.Test.Helpers
                 };
             }
 
-            public static DefaultHttpRequest CreateHttpRequest(Guid todoId, Todo todoRequest)
+
+        public static DefaultHttpRequest CreateHttpRequest(Guid todoId, Todo todoRequest)
             {
                 string request = JsonConvert.SerializeObject(todoRequest);
                 return new DefaultHttpRequest(new DefaultHttpContext())
@@ -70,7 +71,10 @@ namespace tododacma.Test.Helpers
                 };
             }
 
-            public static Stream GenerateStreamFromString(string stringToConvert)
+
+
+
+        public static Stream GenerateStreamFromString(string stringToConvert)
             {
                 MemoryStream stream = new MemoryStream();
                 StreamWriter writer = new StreamWriter(stream);
