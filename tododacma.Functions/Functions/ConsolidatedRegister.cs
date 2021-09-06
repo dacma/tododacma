@@ -10,65 +10,159 @@ using Newtonsoft.Json;
 using Microsoft.WindowsAzure.Storage.Table;
 using tododacma.Functions.Entities;
 using tododacma.common.Responses;
+using tododacma.common.Models;
 
 namespace tododacma.Functions.Functions
 {
     public static class ConsolidatedRegister
     {
 
-        /*
-        [FunctionName(nameof(GetConsolidated))]
-        public static async Task<IActionResult> GetConsolidated(
-           [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "consolidated")] HttpRequest req,
-           [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable consolidatedTable,
-           ILogger log)
+        [FunctionName(nameof(CreateConsolidated))]
+        public static async Task<IActionResult> CreateConsolidated(
+             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "consolidated")] HttpRequest req,
+             [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable consolidatedTable,
+             ILogger log)
         {
-            log.LogInformation("Get all employee received.");
+            log.LogInformation("Recieved a new consolidated.");
 
-            TableQuery<TodoConsolidated> query = new TableQuery<TodoConsolidated>();
-            TableQuerySegment<TodoConsolidated> consolidated = await consolidatedTable.ExecuteQuerySegmentedAsync(query, null);
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            TodoConsolidated employee = JsonConvert.DeserializeObject<TodoConsolidated>(requestBody);
 
-            string message = "received all consolidated.";
-            log.LogInformation(message);
 
-            return new OkObjectResult(new Response
-            {
-                IsSuccess = true,
-                Message = message,
-                Result = consolidated
-            });
-        }
 
-        [FunctionName(nameof(GetTodoByIdConsolidated))]
-        public static IActionResult GetTodoByIdConsolidated(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "consolidated/{date}")] HttpRequest req,
-            [Table("consolidated", "{date}", Connection = "AzureWebJobsStorage")] TodoEntity todoEntity,
-            string date,
-            ILogger log)
-        {
-            log.LogInformation($"Get todo by date: {date}, received.");
-
-            if (todoEntity == null)
+            if (employee.Id == null)
             {
                 return new BadRequestObjectResult(new Response
                 {
                     IsSuccess = false,
-                    Message = "Employee not found."
+                    Message = "invalid employee ID."
                 });
             }
 
-            string message = $"Todo: {date}, retrieved.";
+
+            if (employee.Id <= 0)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "invalid employee ID."
+                });
+            }
+
+
+
+            if (employee.CurrentDate == null)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "The request must be have a valid Date."
+                });
+            }
+
+
+
+            if (employee.Minutes == null)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "invalid employee ID."
+                });
+            }
+
+
+            if (employee.Minutes <= 0)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "invalid employee ID."
+                });
+            }
+
+
+
+            TodoConsolidated todoConsolidated = new TodoConsolidated
+            {
+                Id = 123,
+                CurrentDate = DateTime.UtcNow,
+                Minutes = 0,
+                PartitionKey = "TODO",
+                ETag = "*",
+                RowKey = Guid.NewGuid().ToString(),
+            };
+
+            TableOperation addOperation = TableOperation.Insert(todoConsolidated);
+            await consolidatedTable.ExecuteAsync(addOperation);
+
+            string message = "New todo stored in table";
             log.LogInformation(message);
 
             return new OkObjectResult(new Response
             {
                 IsSuccess = true,
                 Message = message,
-                Result = todoEntity
+                Result = todoConsolidated
             });
         }
 
-        */
+
+        [FunctionName(nameof(GetAllConsolidated))]
+        public static async Task<IActionResult> GetAllConsolidated(
+           [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "consolidated")] HttpRequest req,
+           [Table("consolidated", Connection = "AzureWebJobsStorage")] CloudTable consolidatedTable,
+           ILogger log)
+        {
+            log.LogInformation("Get all todos received.");
+
+            TableQuery<TodoConsolidated> query = new TableQuery<TodoConsolidated>();
+            TableQuerySegment<TodoConsolidated> consolidateds = await consolidatedTable.ExecuteQuerySegmentedAsync(query, null);
+
+            string message = "Retrieved all todos.";
+            log.LogInformation(message);
+
+            return new OkObjectResult(new Response
+            {
+                IsSuccess = true,
+                Message = message,
+                Result = consolidateds
+            });
+        }
+
+
+        [FunctionName(nameof(GetTodoByIdConsol))]
+        public static IActionResult GetTodoByIdConsol(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "consolidated/{id}")] HttpRequest req,
+            [Table("consolidated", "TODO", "{id}", Connection = "AzureWebJobsStorage")] TodoConsolidated consolidatedEntity,
+            string id,
+            ILogger log)
+        {
+            log.LogInformation($"Get todo by id: {id}, received.");
+
+            if (consolidatedEntity == null)
+            {
+                return new BadRequestObjectResult(new Response
+                {
+                    IsSuccess = false,
+                    Message = "Todo not found."
+                });
+            }
+
+            string message = $"Todo: {id}, retrieved.";
+            log.LogInformation(message);
+
+            return new OkObjectResult(new Response
+            {
+                IsSuccess = true,
+                Message = message,
+                Result = consolidatedEntity
+            });
+        }
+
+
+
+
 
     }
 }
